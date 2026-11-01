@@ -1,0 +1,28 @@
+[project]
+name = "pai_vla"
+version = "0.1.0"
+description = "rosbag2 -> LeRobotDataset conversion for the SmolVLA lecture"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+python = "3.12.*"
+
+[tool.pixi.pypi-dependencies]
+# Colab の学習ノートブックと同じバージョンにそろえる（データセット形式を一致させるため）
+lerobot = { version = "==0.6.1", extras = ["dataset"] }
+rosbags = ">=0.10.10,<0.11"
+# 変換にGPUは不要なので，CUDA版（数GB）ではなく軽いCPU版のPyTorchを使う
+torch = { version = "*", index = "https://download.pytorch.org/whl/cpu" }
+torchvision = { version = "*", index = "https://download.pytorch.org/whl/cpu" }
+
+[tool.pixi.activation.env]
+PYTHONNOUSERSITE = "1"
+
+[tool.pixi.tasks]
+convert = { cmd = "python scripts/rosbag2lerobot.py" }
+visualize = { cmd = "lerobot-dataset-viz" }

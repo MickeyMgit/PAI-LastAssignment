@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  演習用 FR3 モデル
+  - franka_description (franka_ros2) の FR3 + Franka Hand をそのまま使う
+  - Gazebo (Ignition Fortress) 用に ros2_control（位置指令）と手首カメラを追加
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fr3">
+
+  <xacro:arg name="controllers_file" default="$(find franka_vla_sim)/config/controllers.yaml"/>
+
+  <xacro:include filename="$(find franka_description)/robots/common/franka_robot.xacro"/>
+
+  <!-- ロボット本体（ベースはワールドに固定） -->
+  <xacro:franka_robot robot_type="fr3" hand="true" ee_id="franka_hand"
+                      rpy_ee="0 0 ${-pi/4}" connected_to="world"/>
+
+  <!-- 初期姿勢（config/task.yaml の home_q と合わせる） -->
+  <xacro:property name="home" value="${[0.0, -0.3, 0.0, -2.2, 0.0, 1.9, 0.785]}"/>
+
+  <!-- ========== ros2_control（Gazebo内の関節を位置指令で動かす） ========== -->
+  <ros2_control name="IgnitionSystem" type="system">
+    <hardware>
+      <plugin>ign_ros2_control/IgnitionSystem</plugin>
+    </hardware>
+    <xacro:macro name="arm_joint" params="i">
+      <joint name="fr3_joint${i}">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${home[i-1]}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </xacro:macro>
+    <xacro:arm_joint i="1"/>
+    <xacro:arm_joint i="2"/>
+    <xacro:arm_joint i="3"/>
+    <xacro:arm_joint i="4"/>
+    <xacro:arm_joint i="5"/>
+    <xacro:arm_joint i="6"/>
+    <xacro:arm_joint i="7"/>
+    <joint name="fr3_finger_joint1">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="fr3_finger_joint2">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <gazebo>
+    <plugin filename="libign_ros2_control-system.so" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+      <parameters>$(arg controllers_file)</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- 押し作業で指先が滑りすぎないよう摩擦を設定 -->
+  <gazebo reference="fr3_leftfinger"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+  <gazebo reference="fr3_rightfinger"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+
+  <!-- ========== 手首カメラ ========== -->
+  <link name="wrist_camera_link">
+    <visual>
+      <geometry><box size="0.02 0.04 0.02"/></geometry>
+    </visual>
+    <inertial>
+      <mass value="0.01"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+  <joint name="wrist_camera_joint" type="fixed">
+    <parent link="fr3_hand"/>
+    <child link="wrist_camera_link"/>
+    <!-- ハンドの横から指先方向（ハンドのz軸方向）を見下ろす -->
+    <origin xyz="0.07 0 0.03" rpy="0 ${-pi/2 - 0.35} 0"/>
+  </joint>
+  <gazebo reference="wrist_camera_link">
+    <sensor name="wrist_camera" type="camera">
+      <update_rate>10</update_rate>
+      <always_on>true</always_on>
+      <topic>/cameras/wrist/image</topic>
+      <camera>
+        <horizontal_fov>1.4</horizontal_fov>
+        <image><width>256</width><height>256</height></image>
+        <clip><near>0.01</near><far>5.0</far></clip>
+      </camera>
+    </sensor>
+  </gazebo>
+
+</robot>

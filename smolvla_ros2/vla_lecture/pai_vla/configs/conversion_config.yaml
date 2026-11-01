@@ -1,0 +1,20 @@
+# rosbag -> LeRobotDataset 変換の設定
+# franka_vla_sim/config/task.yaml の fps・トピック名と一致させること．
+
+bag_dir: ~/dataset/rosbags/franka_push              # ep_000, ep_001, ... が入っているディレクトリ
+output_dir: ~/dataset/lerobot_dataset/franka_push   # 変換後のデータセットの保存先
+repo_id: YOUR_HF_USERNAME/franka_push               # Hugging Face Hub 上の名前（<ユーザー名>/<データセット名>）
+
+fps: 10
+task: "Push the red cube into the green goal area."
+robot_type: fr3
+trim_idle: true          # エピソードの最初と最後の「ロボットが止まっている区間」を削る
+
+topics:
+  joint_states: /joint_states
+  action: /arm_controller/commands
+  cameras:               # データセット上のカメラ名: トピック名（SmolVLA の camera1, camera2 に合わせる）
+    camera1: /cameras/front/image
+    camera2: /cameras/wrist/image
+
+joint_names: [fr3_joint1, fr3_joint2, fr3_joint3, fr3_joint4, fr3_joint5, fr3_joint6, fr3_joint7]

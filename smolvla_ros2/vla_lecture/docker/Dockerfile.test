@@ -1,0 +1,10 @@
+# 教材の動作確認用（ヘッドレス）。学生は前回と同じ airobotbook/ros2-desktop-ai-robot-book-humble を使う
+FROM ros:humble
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ros-humble-ros-gz ros-humble-ign-ros2-control ros-humble-ros2-controllers \
+      ros-humble-ros2-control ros-humble-xacro ros-humble-robot-state-publisher \
+      ros-humble-cv-bridge ros-humble-rosbag2-storage-mcap \
+      python3-numpy python3-requests python3-opencv python3-pip \
+      xvfb mesa-utils libgl1-mesa-dri git \
+    && rm -rf /var/lib/apt/lists/*

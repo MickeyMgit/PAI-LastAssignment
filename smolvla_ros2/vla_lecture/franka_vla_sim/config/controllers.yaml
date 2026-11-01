@@ -1,0 +1,28 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 200  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    arm_controller:
+      type: position_controllers/JointGroupPositionController
+    hand_controller:
+      type: position_controllers/JointGroupPositionController
+
+# /arm_controller/commands (std_msgs/Float64MultiArray, 7要素) に関節角の目標値を送ると動く
+arm_controller:
+  ros__parameters:
+    joints:
+      - fr3_joint1
+      - fr3_joint2
+      - fr3_joint3
+      - fr3_joint4
+      - fr3_joint5
+      - fr3_joint6
+      - fr3_joint7
+
+hand_controller:
+  ros__parameters:
+    joints:
+      - fr3_finger_joint1
+      - fr3_finger_joint2
